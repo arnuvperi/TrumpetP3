@@ -37,9 +37,17 @@ freq = [261.63,277.18,293.67,311.13,329.63,349.23,369.99,392,415.3,440,466.16,49
 note = ["C4", "C#4", "D4", "D#4", "E4", "F4", "F#4", "G4", "G#4", "A4", "A#4", "B4", "C5", "C#5", "D5", "D#5", "E5", "F5", "F#5", "G5", "G#5", "A5", "A#5", "B5", "C6"]
 
 
-wholenotes_row1 = ["C" 261.63; "D" 293.67; "E" 329.63; "F" 349.23; "G" 392.0; "A" 440.0; "B" 493.88; "C" 523.25]
-halfnotes_row1 = ["C 1/2" 261.63; "D 1/2" 293.67; "E 1/2" 329.63; "F 1/2" 349.23; "G 1/2" 392.0; "A 1/2" 440.0; "B 1/2" 493.88; "C 1/2" 523.25]
-qnotes_row1 = ["C 1/4" 261.63; "D 1/4" 293.67; "E 1/4" 329.63; "F 1/4" 349.23; "G 1/4" 392.0; "A 1/4" 440.0; "B 1/4" 493.88; "C 1/4" 523.25]
+#regular notes
+regnote = GtkCssProvider(data="#end {color:red; background:white;}")
+wholenotes = ["C" 261.63; "D" 293.67; "E" 329.63; "F" 349.23; "G" 392.0; "A" 440.0; "B" 493.88; "C" 523.25]
+halfnotes = ["1/2" 261.63; "1/2" 293.67; "1/2" 329.63; "1/2" 349.23; "1/2" 392.0; "1/2" 440.0; "1/2" 493.88; "1/2" 523.25]
+quarternotes = ["1/4" 261.63; "1/4" 293.67; "1/4" 329.63; "1/4" 349.23; "1/4" 392.0; "1/4" 440.0; "1/4" 493.88; "1/4" 523.25]
+
+#accidentals (sharps and flats)
+sharpnote = GtkCssProvider(data="#end {color:white; background:black;}")
+sharpwhole = ["C#" 277.18; "D#" 311.13; "F#" 369.99; "G#" 415.3; "A#" 466.16]
+sharphalf = ["1/2" 277.18; "1/2" 311.13; "1/2" 369.99; "G# 1/2" 415.3; "1/2" 466.16]
+sharpquarter = ["1/4" 277.18; "1/4" 311.13; "1/4" 369.99; "1/4" 415.3; "1/4" 466.16]
 
 g = GtkGrid() # initialize a grid to hold buttons
 set_gtk_property!(g, :row_spacing, 5) # gaps between buttons
@@ -49,24 +57,26 @@ set_gtk_property!(g, :column_homogeneous, true)
 
 
 
-for i in 1:size(wholenotes_row1, 1) # add the row1 keys to the grid
-    key, freq1 = wholenotes_row1[i,1:2]
+for i in 1:size(wholenotes, 1) # add the row1 keys to the grid
+    key, freq1 = wholenotes[i,1:2]
     duration = 1
     b = GtkButton(key) # make a button for this key
     signal_connect((win) -> generateTone(key, freq1, duration), b, "clicked") # callback
+    push!(GAccessor.style_context(b), GtkStyleProvider(sharpnote), 600)
+    set_gtk_property!(b, :name, key) 
     g[i, 3] = b  # put the button in row 3 of the grid
 end
 
-for i in 1:size(halfnotes_row1, 1) # add the row1 keys to the grid
-    key, freq1 = halfnotes_row1[i,1:2]
+for i in 1:size(halfnotes, 1) # add the row1 keys to the grid
+    key, freq1 = halfnotes[i,1:2]
     duration = 2
     b = GtkButton(key) # make a button for this key
     signal_connect((win) -> generateTone(key, freq1, duration), b, "clicked") # callback
     g[i, 2] = b  # put the button in row 2 of the grid
 end
 
-for i in 1:size(qnotes_row1, 1) # add the row1 keys to the grid
-    key, freq1 = qnotes_row1[i,1:2]
+for i in 1:size(quarternotes, 1) # add the row1 keys to the grid
+    key, freq1 = quarternotes[i,1:2]
     duration = 4
     b = GtkButton(key) # make a button for this key
     signal_connect((win) -> generateTone(key, freq1, duration), b, "clicked") # callback
