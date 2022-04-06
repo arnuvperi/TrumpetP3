@@ -17,9 +17,9 @@ freqs = Float32[] #stores frequencies of notes
 durations = Float32[] #stores durations of notes
 tone = Float32[] # initialize "tone" as an empty vector
 
-currentInstrument = 0 #0 is piano, 1 is guitar, 2 is bass, 3 is flute, 4 is trumpet
-
 songName = "Enter_Song_Name_Here"
+instrumentOptions = ["Piano"; "Guitar"; "Trumpet"]
+currentInstrument = instrumentOptions[1]
 
 
 #Play Sound for Quicker Response later
@@ -29,9 +29,12 @@ sound([1], S)
 function generateTone(freq::Float64, duration::Int64)
     global N = div(S,duration) ; n = 0:N-1; t = n/S
     x = cos.(2 * pi * t * freq) # generate sinusoidal tone
-   
+    y = cos.(2 * pi * t * freq) #copy to upload to tone
+    if currentInstrument == instrumentOptions[1]
+        x = (sin.(pi*t*freq).^3)
+    end
     sound(x, S) # play note so that user can hear it immediately
-    global tone = [tone; x] # append note to the (global) tone vector
+    global tone = [tone; y] # append note to the (global) tone vector
     global tone = [tone; zeros(100)] #append 100 zeros to the end for note spacing
     push!(freqs, freq) #push frequency into array of frequencies
     push!(durations, duration) #push duration into array of durations
@@ -50,87 +53,99 @@ sharp = GtkCssProvider(data="#wb {color:white; background:black;}")
 endButton = GtkCssProvider(data="#end {color:white; background:green;}")
 undo = GtkCssProvider(data="#undo {color:white; background:gray;}")
 clear = GtkCssProvider(data="#clear {color:white; background:red;}")
+instrument = GtkCssProvider(data="#ins {color:white; background:blue;}")
+instrumentSelect = GtkCssProvider(data="#insClick {color:orange; background:blue;}")
 
 
 ##Define [Note Name Frequency PlaceOnGTKGrid]##
 
 #regular notes
-wholenotes = ["C" 261.63 1; "D" 293.67 3; "E" 329.63 5; "F" 349.23 6; "G" 392.0 8; "A" 440.0 10; "B" 493.88 12; "C" 523.25 13; "Rest" 0.0 14]
-halfnotes = ["1/2" 261.63 1; "1/2" 293.67 3; "1/2" 329.63 5; "1/2" 349.23 6; "1/2" 392.0 8; "1/2" 440.0 10; "1/2" 493.88 12; "1/2" 523.25 13; "1/2" 0.0 14]
-quarternotes = ["1/4" 261.63 1; "1/4" 293.67 3; "1/4" 329.63 5; "1/4" 349.23 6; "1/4" 392.0 8; "1/4" 440.0 10; "1/4" 493.88 12; "1/4" 523.25 13; "1/4" 0.0 14]
+whitekeys = ["C" 261.63 1; "D" 293.67 3; "E" 329.63 5; "F" 349.23 6; "G" 392.0 8; "A" 440.0 10; "B" 493.88 12; "C" 523.25 13; "Rest" 0.0 14]
 
 #accidentals (sharps and flats)
 
-sharpwhole = ["C" 277.18 2; "D" 311.13 4; "F" 369.99 8; "G" 415.3 10; "A" 466.16 12]
+accidentals = ["C" 277.18 2; "D" 311.13 4; "F" 369.99 8; "G" 415.3 10; "A" 466.16 12]
 sharphalf = ["1/2" 277.18 2; "1/2" 311.13 4; "1/2" 369.99 8; "1/2" 415.3 10; "1/2" 466.16 12]
 sharpquarter = ["1/4" 277.18 2; "1/4" 311.13 4; "1/4" 369.99 8; "1/4" 415.3 10; "1/4" 466.16 12]
 
 
 #Create whole note black keys
-for i in 1:size(sharpwhole,1) # add the black keys to the grid
-    key, freq, start = sharpwhole[i,1:3]
+for i in 1:size(accidentals,1) # add the black keys to the grid
+    key, freq, position = accidentals[i,1:3]
     duration = 1
     b = GtkButton(key * "♯") # to make ♯ symbol, type \sharp then hit <tab>
     
     push!(GAccessor.style_context(b), GtkStyleProvider(sharp), 600)
     set_gtk_property!(b, :name, "wb") # set "style" of black key
     signal_connect((win) -> generateTone(freq, duration), b, "clicked") # callback
-    g[start .+ (0:1), 3] = b # put the button in row 3 of the grid
+    g[position .+ (0:1), 3] = b # put the button in row 3 of the grid
 
 end
 
 #Create 1/2 note black keys
-for i in 1:size(sharphalf,1) # add the black keys to the grid
-    key, freq1, start = sharphalf[i,1:3]
+for i in 1:size(accidentals,1) # add the black keys to the grid
+    key, freq, position = accidentals[i,1:3]
     duration = 2
 
-    b = GtkButton(key) # to make ♯ symbol, type \sharp then hit <tab>
+    b = GtkButton("1/2") # to make ♯ symbol, type \sharp then hit <tab>
     push!(GAccessor.style_context(b), GtkStyleProvider(sharp), 600)
     set_gtk_property!(b, :name, "wb") # set "style" of black key
-    signal_connect((win) -> generateTone(freq1, duration), b, "clicked") # callback
-    g[start .+ (0:1), 2] = b # put the button in row 2 of the grid
+    signal_connect((win) -> generateTone(freq, duration), b, "clicked") # callback
+    g[position .+ (0:1), 2] = b # put the button in row 2 of the grid
 end
 
 #Create 1/4 note black keys
-for i in 1:size(sharpquarter,1) # add the black keys to the grid
-    key, freq, start = sharpquarter[i,1:3]
+for i in 1:size(accidentals,1) # add the black keys to the grid
+    key, freq, position = accidentals[i,1:3]
     duration = 4
 
-    b = GtkButton(key * "♯") # to make ♯ symbol, type \sharp then hit <tab>
+    b = GtkButton("1/4") # to make ♯ symbol, type \sharp then hit <tab>
     push!(GAccessor.style_context(b), GtkStyleProvider(sharp), 600)
     set_gtk_property!(b, :name, "wb") # set "style" of black key
     signal_connect((w) -> generateTone(freq, duration), b, "clicked") # callback
-    g[start .+ (0:1), 1] = b # put the button in row 1 of the grid
+    g[position .+ (0:1), 1] = b # put the button in row 1 of the grid
 end
 
 #Create whole note white keys
-for i in 1:size(wholenotes,1) # add the white keys to the grid
-    key, freq1, place = wholenotes[i,1:3]
+for i in 1:size(whitekeys,1) # add the white keys to the grid
+    key, freq, place = whitekeys[i,1:3]
     duration = 1
 
     b = GtkButton(key) # make a button for this key
-    signal_connect((win) -> generateTone(freq1, duration), b, "clicked") # callback
+    signal_connect((win) -> generateTone(freq, duration), b, "clicked") # callback
     g[(1:2) .+ 2*(i-1), 6] = b # put the button in row 6 of the grid
 end
 
 #Create 1/2 note white keys
-for i in 1:size(halfnotes,1) # add the white keys to the grid
-    key, freq1, place = halfnotes[i,1:3]
+for i in 1:size(whitekeys,1) # add the white keys to the grid
+    key, freq, place = whitekeys[i,1:3]
     duration = 2
 
-    b = GtkButton(key) # make a button for this key
-    signal_connect((win) -> generateTone(freq1, duration), b, "clicked") # callback
+    b = GtkButton("1/2") # make a button for this key
+    signal_connect((win) -> generateTone(freq, duration), b, "clicked") # callback
     g[(1:2) .+ 2*(i-1), 5] = b # put the button in row 5 of the grid
 end
 
 #Create 1/4 note white keys
-for i in 1:size(quarternotes,1) # add the white keys to the grid
-    key, freq1, place = quarternotes[i,1:3]
+for i in 1:size(whitekeys,1) # add the white keys to the grid
+    key, freq, place = whitekeys[i,1:3]
     duration = 4
 
-    b = GtkButton(key) # make a button for this key
-    signal_connect((win) -> generateTone(freq1, duration), b, "clicked") # callback
+    b = GtkButton("1/4") # make a button for this key
+    signal_connect((win) -> generateTone(freq, duration), b, "clicked") # callback
     g[(1:2) .+ 2*(i-1), 4] = b # put the button in row 4 of the grid
+end
+
+##Generate row of buttons for instruments
+
+for i in 1:size(instrumentOptions,1) # add the instrument buttons to the grid
+    insName = instrumentOptions[i]
+    b = GtkButton(insName) # make a button for this key
+
+    push!(GAccessor.style_context(b), GtkStyleProvider(instrument), 600)
+    set_gtk_property!(b, :name, "ins") # set style of the "instrument" button
+    signal_connect((win) -> instrument_selected(i), b, "clicked") # callback
+    g[(1:2) .+ 2*(i-1), 8] = b # put the button in row 5 of the grid
 end
 
 
@@ -161,6 +176,12 @@ end
 function text_entered(w)
     global songName = get_gtk_property(ent,:text,String)
     println("Song Name Retrieved")
+end
+
+function instrument_selected(index::Int64)
+    currentInstrument = instrumentOptions[index]
+    GAccessor.text(label, "Current Instrument: " * currentInstrument)
+    println(currentInstrument * " selected")
 end
 
 
@@ -196,6 +217,10 @@ g[12:17, 7] = ent
 set_gtk_property!(ent,:text, songName)
 id = signal_connect(text_entered, ent, "changed")
 
+
+##label indiciating selected instrument
+label = GtkLabel("Current Instrument: " * currentInstrument)
+g[12:17, 8] = label
 
 
 #Create window and push GTK to window
