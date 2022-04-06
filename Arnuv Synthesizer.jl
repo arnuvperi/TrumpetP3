@@ -5,7 +5,6 @@ using WAV: wavwrite
 using FFTW: fft
 using DelimitedFiles
 
-include
 
 
 # Initialize S and N variables for Sound Usage
@@ -21,7 +20,7 @@ tone = Float32[] # initialize "tone" as an empty vector
 currentInstrument = 0 #0 is piano, 1 is guitar, 2 is bass, 3 is flute, 4 is trumpet
 
 
-#Play Sound for Quicker Resposse later
+#Play Sound for Quicker Response later
 sound([1], S)
 
 ##Generate Tone Function##
@@ -30,9 +29,9 @@ function generateTone(key, freq1::Float64, duration::Int64)
     x = cos.(2 * pi * t * freq1) # generate sinusoidal tone
     sound(x, S) # play note so that user can hear it immediately
     global tone = [tone; x] # append note to the (global) tone vector
-    global tone = [tone; zeros(100)]
-    push!(freqs, freq1)
-    push!(durations, duration)
+    global tone = [tone; zeros(100)] #append 100 zeros to the end for note spacing
+    push!(freqs, freq1) #push frequency into array of frequencies
+    push!(durations, duration) #push duration into array of durations
     return nothing
 end
 
