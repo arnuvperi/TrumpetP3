@@ -19,18 +19,21 @@ tone = Float32[] # initialize "tone" as an empty vector
 
 currentInstrument = 0 #0 is piano, 1 is guitar, 2 is bass, 3 is flute, 4 is trumpet
 
+songName = "Enter_Song_Name_Here"
+
 
 #Play Sound for Quicker Response later
 sound([1], S)
 
 ##Generate Tone Function##
-function generateTone(key, freq1::Float64, duration::Int64)
+function generateTone(freq::Float64, duration::Int64)
     global N = div(S,duration) ; n = 0:N-1; t = n/S
-    x = cos.(2 * pi * t * freq1) # generate sinusoidal tone
+    x = cos.(2 * pi * t * freq) # generate sinusoidal tone
+   
     sound(x, S) # play note so that user can hear it immediately
     global tone = [tone; x] # append note to the (global) tone vector
     global tone = [tone; zeros(100)] #append 100 zeros to the end for note spacing
-    push!(freqs, freq1) #push frequency into array of frequencies
+    push!(freqs, freq) #push frequency into array of frequencies
     push!(durations, duration) #push duration into array of durations
     return nothing
 end
@@ -43,7 +46,7 @@ set_gtk_property!(g, :row_homogeneous, true) # stretch with window resize
 set_gtk_property!(g, :column_homogeneous, true)
 
 
-sharp = GtkCssProvider(data="#acc {color:white; background:black;}")
+sharp = GtkCssProvider(data="#wb {color:white; background:black;}")
 endButton = GtkCssProvider(data="#end {color:white; background:green;}")
 undo = GtkCssProvider(data="#undo {color:white; background:gray;}")
 clear = GtkCssProvider(data="#clear {color:white; background:red;}")
@@ -65,14 +68,13 @@ sharpquarter = ["1/4" 277.18 2; "1/4" 311.13 4; "1/4" 369.99 8; "1/4" 415.3 10; 
 
 #Create whole note black keys
 for i in 1:size(sharpwhole,1) # add the black keys to the grid
-    key, freq1, start = sharpwhole[i,1:3]
+    key, freq, start = sharpwhole[i,1:3]
     duration = 1
     b = GtkButton(key * "♯") # to make ♯ symbol, type \sharp then hit <tab>
     
     push!(GAccessor.style_context(b), GtkStyleProvider(sharp), 600)
     set_gtk_property!(b, :name, "wb") # set "style" of black key
-    
-    signal_connect((win) -> generateTone(key, freq1, duration), b, "clicked") # callback
+    signal_connect((win) -> generateTone(freq, duration), b, "clicked") # callback
     g[start .+ (0:1), 3] = b # put the button in row 3 of the grid
 
 end
@@ -85,21 +87,20 @@ for i in 1:size(sharphalf,1) # add the black keys to the grid
     b = GtkButton(key) # to make ♯ symbol, type \sharp then hit <tab>
     push!(GAccessor.style_context(b), GtkStyleProvider(sharp), 600)
     set_gtk_property!(b, :name, "wb") # set "style" of black key
-    signal_connect((win) -> generateTone(key, freq1, duration), b, "clicked") # callback
+    signal_connect((win) -> generateTone(freq1, duration), b, "clicked") # callback
     g[start .+ (0:1), 2] = b # put the button in row 2 of the grid
 end
 
 #Create 1/4 note black keys
 for i in 1:size(sharpquarter,1) # add the black keys to the grid
-    key, freq1, start = sharpquarter[i,1:3]
+    key, freq, start = sharpquarter[i,1:3]
     duration = 4
-    b = GtkButton(key) # to make ♯ symbol, type \sharp then hit <tab>
+
+    b = GtkButton(key * "♯") # to make ♯ symbol, type \sharp then hit <tab>
     push!(GAccessor.style_context(b), GtkStyleProvider(sharp), 600)
     set_gtk_property!(b, :name, "wb") # set "style" of black key
- 
-    signal_connect((win) -> generateTone(key, freq1, duration), b, "clicked") # callback
+    signal_connect((w) -> generateTone(freq, duration), b, "clicked") # callback
     g[start .+ (0:1), 1] = b # put the button in row 1 of the grid
-
 end
 
 #Create whole note white keys
@@ -108,7 +109,7 @@ for i in 1:size(wholenotes,1) # add the white keys to the grid
     duration = 1
 
     b = GtkButton(key) # make a button for this key
-    signal_connect((win) -> generateTone(key, freq1, duration), b, "clicked") # callback
+    signal_connect((win) -> generateTone(freq1, duration), b, "clicked") # callback
     g[(1:2) .+ 2*(i-1), 6] = b # put the button in row 6 of the grid
 end
 
@@ -118,7 +119,7 @@ for i in 1:size(halfnotes,1) # add the white keys to the grid
     duration = 2
 
     b = GtkButton(key) # make a button for this key
-    signal_connect((win) -> generateTone(key, freq1, duration), b, "clicked") # callback
+    signal_connect((win) -> generateTone(freq1, duration), b, "clicked") # callback
     g[(1:2) .+ 2*(i-1), 5] = b # put the button in row 5 of the grid
 end
 
@@ -128,30 +129,18 @@ for i in 1:size(quarternotes,1) # add the white keys to the grid
     duration = 4
 
     b = GtkButton(key) # make a button for this key
-    signal_connect((win) -> generateTone(key, freq1, duration), b, "clicked") # callback
+    signal_connect((win) -> generateTone(freq1, duration), b, "clicked") # callback
     g[(1:2) .+ 2*(i-1), 4] = b # put the button in row 4 of the grid
 end
 
-##Start of End Button##
 
-
-function end_button_clicked(w) # callback function for "end" button
+##CALLBACK FUNCTIONS##
+function save_button_clicked(w) # callback function for "end" button
     println("Playing Tone and Writing to File")
     sound(tone, S) # play the entire tone when user clicks "end"
-    wavwrite(tone, "touch.wav"; Fs=S) # save tone to file
-    writedlm("synthData.txt", [freqs durations], ", ")
+    wavwrite(tone, songName * ".wav"; Fs=S) # save tone to file
+    writedlm(songName * ".txt", [freqs durations], ", ")
 end
-
-ebutton = GtkButton("end") # make an "end" button
-g[7:10, 7] = ebutton # place in row
-signal_connect(end_button_clicked, ebutton, "clicked") # callback
-push!(GAccessor.style_context(ebutton), GtkStyleProvider(endButton), 600)
-set_gtk_property!(ebutton, :name, "end") # set style of the "end" button
-
-##End of End Button##
-
-##Start of Undo Button##
-
 
 function undo_button_clicked(w) # callback function for undo button
     if length(tone) > 0
@@ -162,17 +151,6 @@ function undo_button_clicked(w) # callback function for undo button
     println("Undid Last Tone")
 end
 
-ubutton = GtkButton("undo") # undo button
-g[4:6, 7] = ubutton
-signal_connect(undo_button_clicked, ubutton, "clicked")
-push!(GAccessor.style_context(ubutton), GtkStyleProvider(undo), 600)
-set_gtk_property!(ubutton, :name, "undo") #set style to undo
-
-
-##End of Undo Button##
-
-##Start of Clear Button##
-
 function clear_button_clicked(w) # callback function for clear button
     global tone = Float32[]
     global freqs =  Float32[]
@@ -180,17 +158,43 @@ function clear_button_clicked(w) # callback function for clear button
     println("Clearing Tone")
 end
 
+function text_entered(w)
+    global songName = get_gtk_property(ent,:text,String)
+    println("Song Name Retrieved")
+end
+
+
+
+##INITIALIZE BUTTONS##
+
+##end button
+sbutton = GtkButton("save") # make an "end" button
+g[4:7, 7] = sbutton # place in row
+signal_connect(save_button_clicked, sbutton, "clicked") # callback
+push!(GAccessor.style_context(sbutton), GtkStyleProvider(endButton), 600)
+set_gtk_property!(sbutton, :name, "end") # set style of the "end" button
+
+
+##undo button
+ubutton = GtkButton("undo") # undo button
+g[1:3, 7] = ubutton
+signal_connect(undo_button_clicked, ubutton, "clicked")
+push!(GAccessor.style_context(ubutton), GtkStyleProvider(undo), 600)
+set_gtk_property!(ubutton, :name, "undo") #set style to undo
+
+##clear button
 cbutton = GtkButton("clear") # clear button
-g[11:13, 7] = cbutton
+g[8:11, 7] = cbutton
 signal_connect(clear_button_clicked, cbutton, "clicked")
 push!(GAccessor.style_context(cbutton), GtkStyleProvider(clear), 600)
 set_gtk_property!(cbutton, :name, "clear") #set style to clear
 
 
-##End of Clear Button##
-
-
-
+##entry field for name of song
+ent = GtkEntry()
+g[12:17, 7] = ent
+set_gtk_property!(ent,:text, songName)
+id = signal_connect(text_entered, ent, "changed")
 
 
 
@@ -201,7 +205,7 @@ push!(win, g) # put button grid into the window
 ##Signal Connect for Callback##
 signal_connect(win, "key-press-event") do widget, event # parse keyboard input        
     if event.keyval == 112
-        end_button_clicked(ebutton)
+        save_button_clicked(sbutton)
     elseif event.keyval == 96
         clear_button_clicked(cbutton)
     elseif event.keyval == 119
@@ -211,7 +215,7 @@ end
 
 ##Close Window
 cond = Condition()
-endit(win) = notify(cond)
+endit(w) = notify(cond)
 signal_connect(endit, win, :destroy)
 showall(win)
 wait(cond) # exit program on window close
