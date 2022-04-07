@@ -5,10 +5,10 @@ using Plots: plot, plot!, default
 default(label="", markerstrokecolor=:auto, markersize=3, ytick=-1:1)
 record(0.001) # warm-up
 x,S = record(5)
+S = 44100
 display(S)
 #x,S = wavread("test.wav")
 #0 = 540; S = 44100; x = cos.(2π*f0*(1:5S)/S).^3 # test code
-S = 44100
 x=x[1:2:end];S÷=2 # reduce memory
 Nx= length(x)
 t=(1:Nx)/S
@@ -17,10 +17,9 @@ t=(1:Nx)/S
 n = Int(2.0 * S) .+ (1:400)
 #p1 = plot!(deepcopy(p0), t[n], x[n], color=:magenta, xlims=extrema(t[n])) 
 y = x[n]; Ny = length(y) # segment
-p2= plot(y, xlabel="n", ylabel="y[n]", marker=:circle, title="Signal")
 autocorr= real(ifft(abs2.(fft([x; zeros(length(x))]))))/ sum(abs2,x)
 p3= plot(0:length(autocorr)-1, autocorr, marker=:circle, color=:orange,xlims=(0,400), xlabel= "shift m", ylabel= "autocorrelation",title= "Normalized autocorrelogram")
-big1= autocorr .> 0.9 # find large values
+big1= autocorr .> 0.8 # find large values
 big1[1:findfirst(==(false), big1)] .= false # ignore peak near m=0
 peak2start= findfirst(==(true), big1)
 peak2end = findnext(==(false), big1, peak2start) # end of 2nd peak

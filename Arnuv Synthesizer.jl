@@ -52,7 +52,7 @@ set_gtk_property!(g, :column_homogeneous, true)
 
 
 sharp = GtkCssProvider(data="#wb {color:white; background:black;}")
-endButton = GtkCssProvider(data="#end {color:white; background:green;}")
+saveButtonColor = GtkCssProvider(data="#end {color:white; background:green;}")
 undo = GtkCssProvider(data="#undo {color:white; background:gray;}")
 clear = GtkCssProvider(data="#clear {color:white; background:red;}")
 instrument = GtkCssProvider(data="#ins {color:white; background:blue;}")
@@ -189,12 +189,12 @@ end
 
 ##INITIALIZE BUTTONS##
 
-##end button
-sbutton = GtkButton("save") # make an "end" button
+##save button
+sbutton = GtkButton("save") # make an "save" button
 g[4:7, 7] = sbutton # place in row
 signal_connect(save_button_clicked, sbutton, "clicked") # callback
-push!(GAccessor.style_context(sbutton), GtkStyleProvider(endButton), 600)
-set_gtk_property!(sbutton, :name, "end") # set style of the "end" button
+push!(GAccessor.style_context(sbutton), GtkStyleProvider(saveButtonColor), 600)
+set_gtk_property!(sbutton, :name, "end") # set style of the "save" button
 
 
 ##undo button

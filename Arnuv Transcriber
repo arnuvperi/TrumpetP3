@@ -5,7 +5,6 @@ using LinearAlgebra: dot
 using Sound: soundsc
 using FFTW: fft
 
-
 name = "happy.wav"
 
 y, S = wavread(name)
@@ -66,7 +65,6 @@ for i in 1:length(tone)
    push!(frequencies, lookupFreq[parse(Int64, tone[i])])
 end
  
-
 
 display(frequencies)
 display(durations)
