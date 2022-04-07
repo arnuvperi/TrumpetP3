@@ -6,7 +6,7 @@ using Sound: soundsc
 using FFTW: fft
 
 
-name = "test.wav"
+name = "happy.wav"
 
 y, S = wavread(name)
 
@@ -18,7 +18,8 @@ ylabel = "frequency index l = k+1",
 ylims = (0, 100), title = "Victors spectrogram",
 xlabel = "time segment")
 savefig("victors1.pdf")
-display(Z[Z.>0.04])
+display(Z[1])
+display(findall(Z .> 0.04))
 
 ##calculates duration of lookupNotes
 
