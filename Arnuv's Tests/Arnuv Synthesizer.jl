@@ -155,6 +155,7 @@ end
 ##CALLBACK FUNCTIONS##
 function save_button_clicked(w) # callback function for "end" button
     println("Playing Tone and Writing to File")
+    display(length(tone))
     sound(tone, S) # play the entire tone when user clicks "end"
     wavwrite(tone, songName * ".wav"; Fs=S) # save tone to file
     writedlm(songName * ".txt", [freqs durations], ", ")

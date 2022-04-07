@@ -3,14 +3,24 @@ using Statistics: mean
 using WAV: wavread
 using LinearAlgebra: dot
 using Sound: soundsc
+using FFTW: fft
 
 #name = readline("song_names.txt");
-name = "happy.wav"
+name = "test.wav"
 
 y, S = wavread(name)
 
+N = 10240 # samples per note
+z = reshape(y, N, :) # 26 notes of 3000 samples each
+Z = 2/N*abs.(fft(z, 1)) # 1D FFT of each column of z
+p1 = heatmap(Z, color = :viridis,
+ylabel = "frequency index l = k+1",
+ylims = (0, 50), title = "Victors spectrogram",
+xlabel = "time segment")
+savefig("victors1.pdf")
+
 ##calculates duration of lookupNotes
-N = 8192
+
 a = reshape(y, N, :) # N × M
 b = a[end-99:end,:] # possible zeros
 c = sum(abs, b, dims=1)
