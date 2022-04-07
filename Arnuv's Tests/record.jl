@@ -72,7 +72,7 @@ function call_stop(w)
     sleep(0.1) # ensure the async record loop finished
     flush(stdout)
     println("\nStop at nsample=$nsample, for $duration out of $maxtime sec.")
-    global song = song[1:2048 * (num + 1)] # truncate song to the recorded duration
+    global song = song[1:2048 * (floor(Int, num) + 1)] # truncate song to the recorded duration
     wavwrite(song, "test" * ".wav"; Fs=S) # save tone to file
 end
 
