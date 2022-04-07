@@ -9,7 +9,7 @@ using DelimitedFiles
 
 # Initialize S and N variables for Sound Usage
 S = 44100 # sampling rate (samples/second)
-N = div(S,2) ; n = 0:N-1; t = n/S
+N = 8192; n = 0:N-1; t = n/S
 
 
 #Initialize empty arrays to store data
@@ -27,14 +27,17 @@ sound([1], S)
 
 ##Generate Tone Function##
 function generateTone(freq::Float64, duration::Int64)
-    global N = div(S,duration) ; n = 0:N-1; t = n/S
-    x = cos.(2 * pi * t * freq) # generate sinusoidal tone
-    y = cos.(2 * pi * t * freq) #copy to upload to tone
-    if currentInstrument == instrumentOptions[1]
-        x = (sin.(pi*t*freq).^3)
+    if duration == 1
+        global N = 8092
+    elseif duration == 2
+        global N = 16284
+    elseif duration == 4
+        global N = 32668
     end
+    n = 0:N-1; t = n/S
+    x = cos.(2 * pi * t * freq) # generate sinusoidal tone
     sound(x, S) # play note so that user can hear it immediately
-    global tone = [tone; y] # append note to the (global) tone vector
+    global tone = [tone; x] # append note to the (global) tone vector
     global tone = [tone; zeros(100)] #append 100 zeros to the end for note spacing
     push!(freqs, freq) #push frequency into array of frequencies
     push!(durations, duration) #push duration into array of durations
@@ -72,7 +75,7 @@ sharpquarter = ["1/4" 277.18 2; "1/4" 311.13 4; "1/4" 369.99 8; "1/4" 415.3 10; 
 #Create whole note black keys
 for i in 1:size(accidentals,1) # add the black keys to the grid
     key, freq, position = accidentals[i,1:3]
-    duration = 1
+    duration = 4
     b = GtkButton(key * "♯") # to make ♯ symbol, type \sharp then hit <tab>
     
     push!(GAccessor.style_context(b), GtkStyleProvider(sharp), 600)
@@ -97,7 +100,7 @@ end
 #Create 1/4 note black keys
 for i in 1:size(accidentals,1) # add the black keys to the grid
     key, freq, position = accidentals[i,1:3]
-    duration = 4
+    duration = 1
 
     b = GtkButton("1/4") # to make ♯ symbol, type \sharp then hit <tab>
     push!(GAccessor.style_context(b), GtkStyleProvider(sharp), 600)
@@ -109,7 +112,7 @@ end
 #Create whole note white keys
 for i in 1:size(whitekeys,1) # add the white keys to the grid
     key, freq, place = whitekeys[i,1:3]
-    duration = 1
+    duration = 4
 
     b = GtkButton(key) # make a button for this key
     signal_connect((win) -> generateTone(freq, duration), b, "clicked") # callback
@@ -129,7 +132,7 @@ end
 #Create 1/4 note white keys
 for i in 1:size(whitekeys,1) # add the white keys to the grid
     key, freq, place = whitekeys[i,1:3]
-    duration = 4
+    duration = 1
 
     b = GtkButton("1/4") # make a button for this key
     signal_connect((win) -> generateTone(freq, duration), b, "clicked") # callback
@@ -227,16 +230,6 @@ g[12:17, 8] = label
 win = GtkWindow("TrumpetScriber", 1000 , 600) # 1000×600 pixel window for all the buttons
 push!(win, g) # put button grid into the window
 
-##Signal Connect for Callback##
-signal_connect(win, "key-press-event") do widget, event # parse keyboard input        
-    if event.keyval == 112
-        save_button_clicked(sbutton)
-    elseif event.keyval == 96
-        clear_button_clicked(cbutton)
-    elseif event.keyval == 119
-        undo_button_clicked(ubutton)
-    end
-end
 
 ##Close Window
 cond = Condition()
