@@ -5,7 +5,7 @@ using LinearAlgebra: dot
 using Sound: soundsc
 using FFTW: fft
 
-#name = readline("song_names.txt");
+
 name = "test.wav"
 
 y, S = wavread(name)

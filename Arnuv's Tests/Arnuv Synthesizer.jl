@@ -11,7 +11,6 @@ using DelimitedFiles
 S = 44100 # sampling rate (samples/second)
 N = 8192; n = 0:N-1; t = n/S
 
-
 #Initialize empty arrays to store data
 freqs = Float32[] #stores frequencies of notes
 durations = Float32[] #stores durations of notes

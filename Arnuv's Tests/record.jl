@@ -14,7 +14,7 @@ using WAV: wavwrite
 # initialize global variables that are used throughout
 const S = 44100 # sampling rate (samples/second)
 const N = 1024 # buffer length
-const maxtime = 10 # maximum recording time 10 seconds (for demo)
+const maxtime = 15 # maximum recording time 10 seconds (for demo)
 recording = nothing # flag
 nsample = 0 # count number of samples recorded
 song = nothing # initialize "song"
@@ -67,10 +67,12 @@ function call_stop(w)
     global recording = false
     global nsample
     duration = round(nsample / S, digits=2)
+    num = round(nsample / 2048, digits = 2)
+
     sleep(0.1) # ensure the async record loop finished
     flush(stdout)
     println("\nStop at nsample=$nsample, for $duration out of $maxtime sec.")
-    global song = song[1:nsample] # truncate song to the recorded duration
+    global song = song[1:2048 * (num + 1)] # truncate song to the recorded duration
     wavwrite(song, "test" * ".wav"; Fs=S) # save tone to file
 end
 
