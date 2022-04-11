@@ -35,6 +35,11 @@ function generateTone(freq::Float64, duration::Int64)
     end
     n = 0:N-1; t = n/S
     x = cos.(2 * pi * t * freq) # generate sinusoidal tone
+    
+    guitarEnv = (1 .- exp.(-80*n/S)) .* exp.(-3*n/S)
+    if currentInstrument == instrumentOptions[2]
+        x = x * guitarEnv
+    end
     sound(x, S) # play note so that user can hear it immediately
     global tone = [tone; x] # append note to the (global) tone vector
     global tone = [tone; zeros(100)] #append 100 zeros to the end for note spacing
@@ -62,11 +67,14 @@ instrumentSelect = GtkCssProvider(data="#insClick {color:orange; background:blue
 ##Define [Note Name Frequency PlaceOnGTKGrid]##
 
 #regular notes
-whitekeys = ["C" 261.63 1; "D" 293.67 3; "E" 329.63 5; "F" 349.23 6; "G" 392.0 8; "A" 440.0 10; "B" 493.88 12; "C" 523.25 13; "Rest" 0.0 14]
-
+whitekeys = ["C" 261.63 1; "D" 293.67 3; "E" 329.63 5; "F" 349.23 6; "G" 392.0 8; 
+"A" 440.0 10; "B" 493.88 12; "C" 523.25 13; "D" 587.33 15; "E" 659.25 17; "F" 698.46 18; "G" 783.99 20; 
+"A" 880.00 22; "B" 987.77 24; "C" 1046.50 25; "Rest" 0.0 26]
 #accidentals (sharps and flats)
 
-accidentals = ["C" 277.18 2; "D" 311.13 4; "F" 369.99 8; "G" 415.3 10; "A" 466.16 12]
+accidentals = ["C" 277.18 2; "D" 311.13 4; "F" 369.99 8; "G" 415.3 10; "A" 466.16 12; 
+"C" 554.37 16; "D" 622.25 18; "F" 739.99 22; "G" 830.61 24; "A" 932.33 26]
+
 
 
 #Create whole note black keys
