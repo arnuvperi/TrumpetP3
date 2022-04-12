@@ -34,12 +34,24 @@ function generateTone(freq::Float64, duration::Int64)
         global N = 32668
     end
     n = 0:N-1; t = n/S
-    x = cos.(2 * pi * t * freq) # generate sinusoidal tone
+    x = cos.(2 * pi * t * freq) # generate sinusoidal tone for base waveform
     
-    guitarEnv = (1 .- exp.(-80*n/S)) .* exp.(-3*n/S)
-    if currentInstrument == instrumentOptions[2]
-        x = x * guitarEnv
+
+    ##alter tone based on instrument selected
+
+    ##piano
+    if currentInstrument == instrumentOptions[1]
+        global x = sin.(2 * pi * freq * t) .* exp.(-0.0004 * 2 * pi * freq * t)
+
+    ##guitar
+    elseif currentInstrument == instrumentOptions[2]
+        global x = cos.(2 * pi * t * freq) + 0.8.*cos.(2 * pi * t * 3 * freq) + 0.5.*cos.(2 * pi * t * 5 * freq)
+
+    ##trumpet
+    elseif currentInstrument == instrumentOptions[3]
+        global x = cos.(2 * pi * t * freq) + 0.25.*cos.(2 * pi * t * 2 * freq) + 0.5.*cos.(2 * pi * t * 3 * freq)
     end
+   
     sound(x, S) # play note so that user can hear it immediately
     global tone = [tone; x] # append note to the (global) tone vector
     global tone = [tone; zeros(100)] #append 100 zeros to the end for note spacing
@@ -162,8 +174,8 @@ function save_button_clicked(w) # callback function for "end" button
     println("Playing Tone and Writing to File")
     display(length(tone))
     sound(tone, S) # play the entire tone when user clicks "end"
-    wavwrite(tone, songName * ".wav"; Fs=S) # save tone to file
-    writedlm(songName * ".txt", [freqs durations], ", ")
+    wavwrite(tone, "/Users/arnuvperi/Library/CloudStorage/OneDrive-Personal/UMich/Winter 2022/ENGR 100/Project 3/Project 3 Code/TrumpetP3/Saved Songs/"* songName * ".wav"; Fs=S) # save tone to file
+    writedlm("/Users/arnuvperi/Library/CloudStorage/OneDrive-Personal/UMich/Winter 2022/ENGR 100/Project 3/Project 3 Code/TrumpetP3/Saved Songs/" * songName * ".txt", [freqs durations], ", ")
 end
 
 function undo_button_clicked(w) # callback function for undo button
@@ -188,7 +200,7 @@ function text_entered(w)
 end
 
 function instrument_selected(index::Int64)
-    currentInstrument = instrumentOptions[index]
+    global currentInstrument = instrumentOptions[index]
     GAccessor.text(label, "Current Instrument: " * currentInstrument)
     println(currentInstrument * " selected")
 end

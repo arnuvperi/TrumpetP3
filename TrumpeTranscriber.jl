@@ -1,9 +1,7 @@
 #Team Trumpet Project 3
 using Gtk
 using WAV: wavwrite
-using FFTW: fft
 using WAV: wavwrite, wavread
-using FFTW: fft, ifft
 using DelimitedFiles
 using Plots; default(markerstrokecolor=:auto, label="")
 using Statistics: mean
@@ -69,6 +67,8 @@ for i in 1:size(songNames,1) # add the instrument buttons to the grid
     g[1:3, 1 + i] = b # put the button in column 1 of the grid
 end
 
+##create default image
+
 
 ##callback functions
 ##generates record buttons
@@ -89,7 +89,10 @@ function song_selected(index::Int64)
     println(currentSong * " selected")
     #getSongData()
     plotSong()
-    g[5,1:4] = GtkImage("/Users/arnuvperi/Library/CloudStorage/OneDrive-Personal/UMich/Winter 2022/ENGR 100/Project 3/Project 3 Code/TrumpetP3/plot.png")
+    x, S = wavread("/Users/arnuvperi/Library/CloudStorage/OneDrive-Personal/UMich/Winter 2022/ENGR 100/Project 3/Project 3 Code/TrumpetP3/Saved Songs/"* currentSong * ".wav")
+    sound(x, S)
+    img = Gtk.GtkImage("/Users/arnuvperi/Library/CloudStorage/OneDrive-Personal/UMich/Winter 2022/ENGR 100/Project 3/Project 3 Code/TrumpetP3/plot.png")
+    g[4:10,1:3] = img
 end
 
 ##get selected song data
@@ -118,12 +121,6 @@ function plotSong()
 
     ##generate plot to place in upper right for student to see
     generateBasicSheetNotePlot(dataSongDurations, dataSongMidi)
-
-    ##path name CHANGE AS NEEDED
-    global img = GtkImage("/Users/arnuvperi/Library/CloudStorage/OneDrive-Personal/UMich/Winter 2022/ENGR 100/Project 3/Project 3 Code/TrumpetP3/plot.png")
-
-  
-
 
 end
 
@@ -462,10 +459,6 @@ g[1:3, 1] = songNameLabel
 ##recording indicator
 recordLabel = GtkLabel("Press Record To Start")
 g[6:8, 5] = recordLabel
-
-##create default image
-img = GtkImage("/Users/arnuvperi/Library/CloudStorage/OneDrive-Personal/UMich/Winter 2022/ENGR 100/Project 3/Project 3 Code/TrumpetP3/start.png")
-g[4:10,1:3] = img
 
 
 
