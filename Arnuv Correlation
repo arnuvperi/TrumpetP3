@@ -1,5 +1,0 @@
-using Plots; default(markerstrokecolor=:auto, label="")
-using Statistics: mean
-using WAV: wavread
-using LinearAlgebra: dot
-using Sound: soundsc

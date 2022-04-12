@@ -8,7 +8,7 @@ using DelimitedFiles
 using Plots; default(markerstrokecolor=:auto, label="")
 using Statistics: mean
 using Measures
-using Gtk: GtkGrid, GtkButton, GtkWindow, GAccessor
+using Gtk: GtkGrid, GtkButton, GtkWindow, GAccessor, GtkWidget
 using Gtk: GtkCssProvider, GtkStyleProvider
 using Gtk: set_gtk_property!, signal_connect, showall
 using Gtk: GtkGrid, GtkButton, GtkWindow, GAccessor, GtkCssProvider, GtkStyleProvider, set_gtk_property!, signal_connect, showall
@@ -104,8 +104,9 @@ function getSongData()
         midi = Int(round(12*log2(dataSongFrequencies[i]/440))+69)
         push!(dataSongMidi, midi)
     end
-
-    display(dataSongMidi)
+    push!(dataSongFrequencies, 0)
+    push!(dataSongMidi, 0)
+    push!(dataSongDurations, 1)
 end
 
 
@@ -116,17 +117,18 @@ function plotSong()
     getSongData()
 
     ##generate plot to place in upper right for student to see
-    generatePlot(dataSongDurations, dataSongMidi)
+    generateBasicSheetNotePlot(dataSongDurations, dataSongMidi)
 
     ##path name CHANGE AS NEEDED
-    img = GtkImage("/Users/arnuvperi/Library/CloudStorage/OneDrive-Personal/UMich/Winter 2022/ENGR 100/Project 3/Project 3 Code/TrumpetP3/plot.png")
+    global img = GtkImage("/Users/arnuvperi/Library/CloudStorage/OneDrive-Personal/UMich/Winter 2022/ENGR 100/Project 3/Project 3 Code/TrumpetP3/plot.png")
 
-    ##place image in grid
-    g[5,1:4] = img
+  
+
+
 end
 
 ##generates stem plot
-function generatePlot(durations::Vector{Any}, midi::Vector{Any})
+function generateBasicSheetNotePlot(durations::Vector{Any}, midi::Vector{Any})
     midiWithDuration = []
     for i in 1:length(midi)-1
 
@@ -138,10 +140,11 @@ function generatePlot(durations::Vector{Any}, midi::Vector{Any})
         end
     end
     
-    plt = plot(midiWithDuration, line=:stem, marker=:circle, markersize = 10, color=:black)
+    plot(midiWithDuration, line=:stem, marker=:circle, markersize = 7, color=:black)
     plot!(size = (800,200)) # size of plot
     plot!(widen=true) # try not to cut off the markers
-    plot!(xticks = [], ylims = (60,85)) # for staff
+    plot!(xlims = (0, length(midiWithDuration) + 3))
+    plot!(xticks = [], ylims = (58,85)) # for staff
     yticks!([64,67,71,74,77,81,84], ["E", "G", "B", "D", "F", "A", "C"]) # helpful labels for staff lines
     plot!(yforeground_color_grid = :blue) # blue staff, just for fun
     plot!(foreground_color_border = :red) # make border "invisible"
@@ -149,7 +152,6 @@ function generatePlot(durations::Vector{Any}, midi::Vector{Any})
     plot!(gridalpha = 0.9) # make grid lines more visible
     plot!(margin = 5mm)
     savefig("plot.png")
-    display(plt)
 end
 
 
@@ -206,16 +208,20 @@ function autocorrelationCalculator()
     push!(tempDuration, localDuration)
     global inputSongMidi = tempMidi
     global inputSongDurations = tempDuration
+
+    push!(inputSongMidi, 0)
+    push!(inputSongDurations, 1)
     
 
 end
 
+##plays 2 seconds of metronome before recording starts
 function playMetronome()
-    bpm = 120
-    bps = bpm / 60 # beats per second
-    spb = 60 / bpm # seconds per beat
+    bpm = 60
+    bps = bpm / 30 # beats per second
+    spb = 15 / bpm # seconds per beat
     t0 = 0.01 # each "tick" is this long
-    tt = 0:1/S:15 # 9 seconds of ticking
+    tt = 0:1/S:2 # 2 seconds of ticking
     x = randn(length(tt)) .* (mod.(tt, spb) .< t0) / 4.5 # click via "envelope"
     sound(x, S)
 end
@@ -256,7 +262,110 @@ function generateScore()
         end
     end
 
-    display(errorLocations)
+
+    ##error based on duration differences
+    counter = 0
+    errorLocDuration = []
+    for i in 1:size(dataSongDurations,1)
+        counter = counter + 1
+        dataDur = 0
+        inputDur = 0
+
+        if i > length(inputSongDurations)
+            inputDur = 0
+        else
+            inputDur= inputSongMidi[i]
+            dataDur = dataSongMidi[i]
+        end
+
+        ##1 note off retruns an error
+        errorThreshold = 1
+
+        percentError = (abs(inputDur - dataDur) / dataDur) * 100
+
+        ##severity of error during each 16th note of playing
+        if percentError >= 3 * errorThreshold
+            push!(errorLocDuration, 3)
+        elseif percentError >= 2 * errorThreshold
+            push!(errorLocDuration, 2)
+        elseif percentError >= errorThreshold
+            push!(errorLocDuration, 1)
+        else
+            push!(errorLocDuration, 0)
+        end
+    end
+
+    totalError = errorLocDuration .+ errorLocations
+
+    generateMarkedPlot(dataSongDurations, dataSongMidi, totalError)
+
+
+end
+
+function rectangle(w, h, x, y)
+    return Shape(x .+ [0,w,w,0], y .+ [0,0,h,h])
+end
+
+function generateMarkedPlot(durations::Vector{Any}, midi::Vector{Any}, totalError::Vector{Int64})
+    midiWithDuration = []
+    errorWithDuration = []
+    for i in 1:length(midi)-1
+
+        push!(midiWithDuration, midi[i])
+        push!(errorWithDuration, totalError[i])
+        num = floor(Int, durations[i] - 1.0)
+
+        for i in 1:num
+            push!(midiWithDuration, 0)
+            push!(errorWithDuration, 0)
+
+        end
+    end
+
+    midiErrorDur = []
+    for i in 1:length(midi)-1
+
+        push!(midiErrorDur, inputSongMidi[i])
+        num = floor(Int, inputSongDurations[i] - 1.0)
+
+        for i in 1:num
+            push!(midiErrorDur, 0)
+
+        end
+    end
+
+    
+    plot(midiWithDuration, line=:stem, marker=:circle, markersize = 7, color=:black)
+    plot!(midiErrorDur, line=:stem, marker=:circle, markersize = 4, color=:red)
+    
+    for i in 1:length(errorWithDuration)
+
+        errorNum = errorWithDuration[i]
+
+        errorLoc = i
+
+        if errorNum > 6
+            plot!(rectangle(errorLoc + 1, 100, errorLoc ,0), opacity=.3, color=:red)
+        elseif errorNum > 3
+            plot!(rectangle(errorLoc + 1, 100, errorLoc ,0), opacity=.3, color=:orange)
+        elseif errorNum > 1
+            plot!(rectangle(errorLoc + 1, 100, errorLoc,0), opacity=.3, color=:yellow)
+        end
+    end
+    plot!(size = (800,200)) # size of plot
+    plot!(widen=true) # try not to cut off the markers
+    plot!(xticks = [], ylims = (58,85)) # for staff
+    plot!(xlims = (0, length(midiWithDuration) + 3))
+    yticks!([64,67,71,74,77,81,84], ["E", "G", "B", "D", "F", "A", "C"]) # helpful labels for staff lines
+    plot!(yforeground_color_grid = :blue) # blue staff, just for fun
+    plot!(foreground_color_border = :red) # make border "invisible"
+    plot!(gridlinewidth = 1.5) # increase width of grid lines
+    plot!(gridalpha = 0.9) # make grid lines more visible
+    plot!(margin = 5mm)
+    savefig("errors.png")
+
+    errorImg = GtkImage("/Users/arnuvperi/Library/CloudStorage/OneDrive-Personal/UMich/Winter 2022/ENGR 100/Project 3/Project 3 Code/TrumpetP3/errors.png")
+    g[4:10,5:8] = errorImg
 
 end
 
@@ -287,11 +396,14 @@ end
 # The @async below is important so that the Stop button can work!
 function call_record(w)
     global N
-        
+    playMetronome()
+    
+    
     in_stream = PortAudioStream(1, 0) # default input device
     buf = read(in_stream, N) # warm-up
     global recording = true
     global song = zeros(Float32, maxtime * S)
+
     
     @async record_loop!(in_stream, buf)
     
@@ -352,8 +464,9 @@ recordLabel = GtkLabel("Press Record To Start")
 g[6:8, 5] = recordLabel
 
 ##create default image
-img = GtkImage("/Users/arnuvperi/Library/CloudStorage/OneDrive-Personal/UMich/Winter 2022/ENGR 100/Project 3/Project 3 Code/TrumpetP3/plot.png")
+img = GtkImage("/Users/arnuvperi/Library/CloudStorage/OneDrive-Personal/UMich/Winter 2022/ENGR 100/Project 3/Project 3 Code/TrumpetP3/start.png")
 g[4:10,1:3] = img
+
 
 
 # create buttons with appropriate callbacks, positions, and styles
