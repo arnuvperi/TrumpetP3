@@ -67,8 +67,6 @@ for i in 1:size(songNames,1) # add the instrument buttons to the grid
     g[1:3, 1 + i] = b # put the button in column 1 of the grid
 end
 
-##create default image
-
 
 ##callback functions
 ##generates record buttons
@@ -91,8 +89,13 @@ function song_selected(index::Int64)
     plotSong()
     x, S = wavread("/Users/arnuvperi/Library/CloudStorage/OneDrive-Personal/UMich/Winter 2022/ENGR 100/Project 3/Project 3 Code/TrumpetP3/Saved Songs/"* currentSong * ".wav")
     sound(x, S)
-    img = Gtk.GtkImage("/Users/arnuvperi/Library/CloudStorage/OneDrive-Personal/UMich/Winter 2022/ENGR 100/Project 3/Project 3 Code/TrumpetP3/plot.png")
+    file = "/Users/arnuvperi/Library/CloudStorage/OneDrive-Personal/UMich/Winter 2022/ENGR 100/Project 3/Project 3 Code/TrumpetP3/plot.png"
+     if isfile(file)
+        display("file exists")
+     end
+    img = Gtk.GtkImage(file)
     g[4:10,1:3] = img
+    showall(win)
 end
 
 ##get selected song data
@@ -467,6 +470,10 @@ br = make_button("Record", call_record, 5, "wr", "color:white; background:red;")
 bs = make_button("Stop", call_stop, 6, "yb", "color:yellow; background:blue;")
 bp = make_button("Play Song", call_play, 7, "wg", "color:white; background:green;")
 bt = make_button("Generate Score", call_transcribe, 8, "wg", "color:white; background:purple;")
+
+
+img = Gtk.GtkImage("/Users/arnuvperi/Library/CloudStorage/OneDrive-Personal/UMich/Winter 2022/ENGR 100/Project 3/Project 3 Code/TrumpetP3/start.png")
+g[4:10,1:3] = img
 
 getSongData()
 
