@@ -17,7 +17,7 @@ durations = Float32[] #stores durations of notes
 tone = Float32[] # initialize "tone" as an empty vector
 
 songName = "Enter_Song_Name_Here"
-instrumentOptions = ["Piano"; "Guitar"; "Trumpet"]
+instrumentOptions = ["Piano"; "Guitar"; "Trumpet" ; "Lightsaber"]
 currentInstrument = instrumentOptions[1]
 
 
@@ -50,7 +50,11 @@ function generateTone(freq::Float64, duration::Int64)
     ##trumpet
     elseif currentInstrument == instrumentOptions[3]
         global x = cos.(2 * pi * t * freq) + 0.25.*cos.(2 * pi * t * 2 * freq) + 0.5.*cos.(2 * pi * t * 3 * freq)
+
+    elseif currentInstrument == instrumentOptions[4]
+        global x = 0.25.*cos.(2 * pi * t * freq) + (sin.(2*pi*t* freq) .* sin.(2 * pi * 91 * sin.(2 * pi  * 30 * t)))
     end
+
    
     sound(x, S) # play note so that user can hear it immediately
     global tone = [tone; x] # append note to the (global) tone vector

@@ -36,6 +36,8 @@ recording = nothing # flag
 nsample = 0 # count number of samples recorded
 song = nothing # initialize "song"
 
+sound([1], S)
+
 inputSongFrequencies = []
 inputSongDurations = []
 inputSongMidi = []
@@ -298,6 +300,16 @@ function generateScore()
     totalError = errorLocDuration .+ errorLocations
 
     generateMarkedPlot(dataSongDurations, dataSongMidi, totalError)
+
+
+    totalNumErrors = sum(totalError)
+
+    lengthOfErrors = length(totalError)
+
+    finalScore = 100 - ((6 * lengthOfErrors) - totalNumErrors)
+
+    GAccessor.text(recordLabel, "Final Score: " * string(finalScore))
+    println(string(finalScore) * " is your score")
 
 
 end
