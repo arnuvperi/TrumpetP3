@@ -46,7 +46,8 @@ dataSongFrequencies = []
 dataSongDurations = []
 dataSongMidi = []
 
-filelist = readdir("/Users/arnuvperi/Library/CloudStorage/OneDrive-Personal/UMich/Winter 2022/ENGR 100/Project 3/Project 3 Code/TrumpetP3/Saved Songs")
+
+filelist = readdir(string(@__DIR__) * "/Saved Songs")
 databaseSongs = []
 songNames = []
 
@@ -89,9 +90,9 @@ function song_selected(index::Int64)
     println(currentSong * " selected")
     #getSongData()
     plotSong()
-    x, S = wavread("/Users/arnuvperi/Library/CloudStorage/OneDrive-Personal/UMich/Winter 2022/ENGR 100/Project 3/Project 3 Code/TrumpetP3/Saved Songs/"* currentSong * ".wav")
+    x, S = wavread(string(@__DIR__) * "/Saved Songs/"* currentSong * ".wav")
     sound(x, S)
-    file = "/Users/arnuvperi/Library/CloudStorage/OneDrive-Personal/UMich/Winter 2022/ENGR 100/Project 3/Project 3 Code/TrumpetP3/plot.png"
+    file = string(@__DIR__) * "/plot.png"
      if isfile(file)
         display("file exists")
      end
@@ -102,7 +103,7 @@ end
 
 ##get selected song data
 function getSongData()
-    data = readdlm("/Users/arnuvperi/Library/CloudStorage/OneDrive-Personal/UMich/Winter 2022/ENGR 100/Project 3/Project 3 Code/TrumpetP3/Saved Songs/"* currentSong * ".txt")
+    data = readdlm(string(@__DIR__) * "/Saved Songs/"* currentSong * ".txt")
     global dataSongFrequencies = data[:,1] #extract frequencies
     global dataSongDurations = data[:,2] #extract durations
     global dataSongMidi = []
@@ -306,7 +307,7 @@ function generateScore()
 
     lengthOfErrors = length(totalError)
 
-    finalScore = 100 - ((6 * lengthOfErrors) - totalNumErrors)
+    finalScore = 100  - totalNumErrors;
 
     GAccessor.text(recordLabel, "Final Score: " * string(finalScore))
     println(string(finalScore) * " is your score")

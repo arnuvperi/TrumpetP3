@@ -178,8 +178,8 @@ function save_button_clicked(w) # callback function for "end" button
     println("Playing Tone and Writing to File")
     display(length(tone))
     sound(tone, S) # play the entire tone when user clicks "end"
-    wavwrite(tone, "/Users/arnuvperi/Library/CloudStorage/OneDrive-Personal/UMich/Winter 2022/ENGR 100/Project 3/Project 3 Code/TrumpetP3/Saved Songs/"* songName * ".wav"; Fs=S) # save tone to file
-    writedlm("/Users/arnuvperi/Library/CloudStorage/OneDrive-Personal/UMich/Winter 2022/ENGR 100/Project 3/Project 3 Code/TrumpetP3/Saved Songs/" * songName * ".txt", [freqs durations], ", ")
+    wavwrite(tone, string(@__DIR__) * "/Saved Songs/"* songName * ".wav"; Fs=S) # save tone to file
+    writedlm(string(@__DIR__) * "/Saved Songs/" * songName * ".txt", [freqs durations], ", ")
 end
 
 function undo_button_clicked(w) # callback function for undo button
