@@ -303,6 +303,8 @@ function generateScore()
     generateMarkedPlot(dataSongDurations, dataSongMidi, totalError)
 
 
+    ##calculate actual score
+
     totalNumErrors = sum(totalError)
 
     lengthOfErrors = length(totalError)
@@ -315,13 +317,18 @@ function generateScore()
 
 end
 
+
+#simple rectangle function for drawing on graph
 function rectangle(w, h, x, y)
     return Shape(x .+ [0,w,w,0], y .+ [0,0,h,h])
 end
 
+
+#create marked plot with error locations
 function generateMarkedPlot(durations::Vector{Any}, midi::Vector{Any}, totalError::Vector{Int64})
     midiWithDuration = []
     errorWithDuration = []
+    ##converts midi and durations to a mix of the two, with 0 representing no note
     for i in 1:length(midi)-1
 
         push!(midiWithDuration, midi[i])
@@ -335,6 +342,8 @@ function generateMarkedPlot(durations::Vector{Any}, midi::Vector{Any}, totalErro
         end
     end
 
+
+    #does the same but for the error locations
     midiErrorDur = []
     for i in 1:length(midi)-1
 
@@ -348,23 +357,27 @@ function generateMarkedPlot(durations::Vector{Any}, midi::Vector{Any}, totalErro
     end
 
     
+    #plots both on same graph
     plot(midiWithDuration, line=:stem, marker=:circle, markersize = 7, color=:black)
     plot!(midiErrorDur, line=:stem, marker=:circle, markersize = 4, color=:red)
     
+
+    ##plots rectangles that highlight errors, with different severity for each section
     for i in 1:length(errorWithDuration)
 
         errorNum = errorWithDuration[i]
 
         errorLoc = i
 
-        if errorNum > 6
+        if errorNum >= 6
             plot!(rectangle(errorLoc + 1, 100, errorLoc ,0), opacity=.3, color=:red)
-        elseif errorNum > 3
+        elseif errorNum >= 3
             plot!(rectangle(errorLoc + 1, 100, errorLoc ,0), opacity=.3, color=:orange)
         elseif errorNum > 1
             plot!(rectangle(errorLoc + 1, 100, errorLoc,0), opacity=.3, color=:yellow)
         end
     end
+
     plot!(size = (800,200)) # size of plot
     plot!(widen=true) # try not to cut off the markers
     plot!(xticks = [], ylims = (58,85)) # for staff
@@ -377,7 +390,8 @@ function generateMarkedPlot(durations::Vector{Any}, midi::Vector{Any}, totalErro
     plot!(margin = 5mm)
     savefig("errors.png")
 
-    errorImg = GtkImage("/Users/arnuvperi/Library/CloudStorage/OneDrive-Personal/UMich/Winter 2022/ENGR 100/Project 3/Project 3 Code/TrumpetP3/errors.png")
+    ##generate error.png
+    errorImg = GtkImage(string(@__DIR__) * "/errors.png")
     g[4:10,5:8] = errorImg
 
 end
@@ -451,17 +465,13 @@ function call_transcribe(w)
     println("Transcribe")
     autocorrelationCalculator()
 
+
+    ##display midis to console
     display(dataSongMidi)
     display(inputSongMidi)
 
+    ##generate score
     generateScore()
-
-    """
-    testData = [261.63;261.63;261.63;261.63;293.67;293.67;261.63;261.63;261.63;261.63;349.23;329.63;]
-    testInput = [261.63;261.63;293.67;293.67;293.67;293.67;261.63;261.63;261.63;261.63;349.23;329.63;]
-    generateScore()
-    """
-
 end
 
 
